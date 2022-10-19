@@ -363,7 +363,8 @@ TipCache::StatusBlockData::StatusBlockData(thread_db* tdbb, TipCache* tipCache, 
 	: blockNumber(blkNumber),
 	  memory(NULL),
 	  existenceLock(tdbb, sizeof(TpcBlockNumber), LCK_tpc_block, this, tpc_block_blocking_ast),
-	  cache(tipCache)
+	  cache(tipCache),
+	  flAstAccept(false)
 {
 	Database* dbb = tdbb->getDatabase();
 
@@ -381,6 +382,7 @@ TipCache::StatusBlockData::StatusBlockData(thread_db* tdbb, TipCache* tipCache, 
 			&cache->memBlockInitializer, true);
 
 		LCK_convert(tdbb, &existenceLock, LCK_SR, LCK_WAIT);	// never fails
+		flAstAccept = true;
 	}
 	catch (const Exception& ex)
 	{
@@ -417,6 +419,7 @@ void TipCache::StatusBlockData::clear(thread_db* tdbb)
 	if (memory)
 	{
 		// wait for all initializing processes (PR)
+		flAstAccept = false;
 		if (!LCK_convert(tdbb, &existenceLock, LCK_SW, LCK_WAIT))
 			ERR_bugcheck_msg("Unable to convert TPC lock (SW)");
 
@@ -688,11 +691,18 @@ int TipCache::tpc_block_blocking_ast(void* arg)
 	Database* dbb = data->existenceLock.lck_dbb;
 	AsyncContextHolder tdbb(dbb, FB_FUNCTION);
 
+	if (!(data->existenceLock.lck_id && data->existenceLock.lck_physical && data->existenceLock.lck_logical
+		&& data->flAstAccept))
+	{
+		gds__log("tpc_block_blocking_ast BUG: lck_id=%d lck_physical=%d lck_logical=%d flAstAccept=%d",
+			data->existenceLock.lck_id, data->existenceLock.lck_physical, data->existenceLock.lck_logical, data->flAstAccept);
+	}
+
 	// We will never be called with initialization (PR) lock
 	// (it's used only in ctor).
 	// When called with finalization (SW or EX) lock that means resource
 	// is already released or will be released very soon.
-	if (data->existenceLock.lck_logical > LCK_SR)
+	if (!data->flAstAccept)
 		return 0;
 
 	TipCache* cache = data->cache;

@@ -420,8 +420,14 @@ void TipCache::StatusBlockData::clear(thread_db* tdbb)
 	{
 		// wait for all initializing processes (PR)
 		flAstAccept = false;
-		if (!LCK_convert(tdbb, &existenceLock, LCK_SW, LCK_WAIT))
+
+		TraNumber oldest =
+			cache->m_tpcHeader->getHeader()->oldest_transaction.load(std::memory_order_relaxed);
+		if (blockNumber < oldest / cache->m_transactionsPerBlock &&			// old block => send AST
+			!LCK_convert(tdbb, &existenceLock, LCK_SW, LCK_WAIT))
+		{
 			ERR_bugcheck_msg("Unable to convert TPC lock (SW)");
+		}
 
 		fName = memory->getMapFileName();
 		delete memory;
@@ -708,6 +714,9 @@ int TipCache::tpc_block_blocking_ast(void* arg)
 	TipCache* cache = data->cache;
 	TraNumber oldest =
 		cache->m_tpcHeader->getHeader()->oldest_transaction.load(std::memory_order_relaxed);
+
+	if (data->blockNumber >= oldest / cache->m_transactionsPerBlock)
+		return 0;
 
 	// Release shared memory
 	if (data->memory)

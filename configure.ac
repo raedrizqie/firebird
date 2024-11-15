@@ -1602,6 +1602,14 @@ case "$PLATFORM" in
     ;;
 
   DARWIN)
+    AC_CONFIG_FILES([
+        gen/darwin.defaults:${MAKE_SRC_DIR}/darwin.defaults])
+    ;;
+  win32)
+    AC_CONFIG_FILES([
+        gen/$fb_tgt/firebird/bin/fb_config:builds/install/arch-specific/mingw/fb_config.in
+        gen/$fb_tgt/firebird/bin/fb_install_service.bat:builds/install/arch-specific/win32/install_service.bat
+        gen/$fb_tgt/firebird/bin/fb_uninstall_service.bat:builds/install/arch-specific/win32/uninstall_service.bat])
     ;;
 esac
 if test -f ${MAKE_SRC_DIR}/postfix.${MAKEFILE_POSTFIX};then
@@ -1617,7 +1625,6 @@ AC_CONFIG_FILES(
 gen/make.rules:${MAKE_SRC_DIR}/make.rules
 gen/make.defaults:${MAKE_SRC_DIR}/make.defaults
 gen/make.platform:${MAKE_SRC_DIR}/prefix.${MAKEFILE_PREFIX}
-gen/darwin.defaults:${MAKE_SRC_DIR}/darwin.defaults
 ${POSTFIX_FILE}
 gen/make.shared.variables:${MAKE_SRC_DIR}/make.shared.variables
 gen/make.shared.targets:${MAKE_SRC_DIR}/make.shared.targets

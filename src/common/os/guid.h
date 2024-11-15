@@ -66,7 +66,7 @@ class Guid
 {
 	// Some versions of MSVC cannot recognize hh specifier but MSVC 2015 has it
 	static constexpr const char* GUID_FORMAT =
-		"{%08X-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}";
+		"{%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}";
 	static constexpr int GUID_FORMAT_ARGS = 11;
 
 public:

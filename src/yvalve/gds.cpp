@@ -104,7 +104,7 @@
 
 #ifdef WIN_NT
 #include <shlobj.h>
-#if _MSC_VER <= 1500
+#if defined(_MSC_VER) && (_MSC_VER<=1500)
 #include <shfolder.h>
 #endif
 #define _WINSOCKAPI_

@@ -1638,6 +1638,11 @@ AC_CONFIG_FILES(
 gen/make.platform.solaris.examples:${MAKE_SRC_DIR}/make.platform.solaris.examples
 )
 ;;
+  win32 )
+AC_CONFIG_FILES(
+examples/extauth/Makefile:${MAKE_SRC_DIR}/Makefile.in.extauth
+)
+;;
 esac
 
 # Fix problem with autoconf 2.72 inserting -std in CXX.
